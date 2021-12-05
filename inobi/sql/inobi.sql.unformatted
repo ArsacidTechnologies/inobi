@@ -1,0 +1,3 @@
+if db_id('{database_name}') is null
+    create database [{database_name}]
+go

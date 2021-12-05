@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Messages</title>
+</head>
+<body>
+
+    <h1>Messages</h1>
+    <p>Total: {{ count }}</p>
+
+    <ul>
+    {% for msg in messages %}
+        <li><pre>
+{{ msg.id }}
+Time: {{ msg.time }}
+Issuer time: {{ msg.issuer_time }}
+Version: {{ msg.version }}
+Issuer: {{ msg.issuer }}
+Type: {{ msg.type }}
+Service: {{ msg.service }}
+To: {{ msg.to }}
+{{ msg.content }}
+        </pre></li>
+    {% endfor %}
+    </ul>
+
+</body>
+</html>

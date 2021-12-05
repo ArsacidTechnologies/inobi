@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+    <input id="gis_url" type="text">
+    <button id="gis_submit">2gis url</button>
+
+    <table>
+        <tr id="title">
+            <th></th>
+        </tr>
+        <tr id="current">
+            <td>current</td>
+        </tr>
+        <tr id="next">
+            <td>next</td>
+        </tr>
+
+    </table>
+
+<script>
+    var gis_submit = document.getElementById('gis_submit');
+    var title = document.getElementById('title');
+    var current = document.getElementById('current');
+    var next = document.getElementById('next');
+    function eventFire(el, etype){
+      if (el.fireEvent) {
+        el.fireEvent('on' + etype);
+      } else {
+        var evObj = document.createEvent('Events');
+        evObj.initEvent(etype, true, false);
+        el.dispatchEvent(evObj);
+      }
+    }
+    function getFileList(url){
+				return fetch('/transport/audio/files?url=' + url)
+					.then(function(raw){
+						if(raw.status == 200){
+							return raw.json();
+						}
+						else{
+                            alert(raw.text)
+							return false;
+						}
+					});
+			};
+    function removeAudio(url){
+        fetch(url, {method: 'delete'}).then(
+            success => reload()
+          ).catch(
+            error => alert(error) 
+          );
+    };
+    function uploadAudio(file, lang, type){
+        fetch('/transport/audio?lang=' + lang + '&type=' + type + "&url=" + document.getElementById('gis_url').value , { // Your POST endpoint
+            method: 'POST',
+            body: file
+          }).then(
+            success => reload()
+          ).catch(
+            error => alert(error) 
+          );
+    };
+    function reload(){
+        eventFire(gis_submit, 'click');
+    }
+    function refresh(){
+        console.log('refresh');
+        title.innerHTML = '<th></th>';
+        current.innerHTML = '<td>current</td>';
+        next.innerHTML = '<td>next</td>';
+
+    }
+    
+    gis_submit.addEventListener("click", function(e){
+        refresh();
+        var gis_url = document.getElementById('gis_url');
+        getFileList(gis_url.value).then(function(data){
+            data = data.data;
+            for(lang in data){  
+                var f_title = document.createElement('th');
+                f_title.appendChild(document.createTextNode(lang));
+                title.appendChild(f_title)
+                for(type in data[lang]){
+                    var f = document.createElement('td');
+                    var f_control = document.createElement('audio');
+                    var f_source = document.createElement('source');
+                    var f_delete = document.createElement('button');
+                    var f_upload = document.createElement('input');
+                    f_upload.setAttribute('id', lang + "_" + type);
+                    f_upload.setAttribute("type", "file");
+                    f_upload.setAttribute('accept', "audio/wav");
+
+                    const onSelectFile = () => uploadAudio(f_upload.files[0], lang, type);
+                    f_upload.addEventListener('change', ({ target }) => {
+                        const [lang, type] = target.id.split('_');
+                        
+                        uploadAudio(target.files[0], lang, type);
+                    }, false);
+                    f_delete.appendChild(document.createTextNode('delete'));
+                    f_delete.setAttribute("onclick", 'removeAudio("' + data[lang][type] + '")')
+                    if (data[lang][type]){
+                        f_source.setAttribute("src", data[lang][type]);
+                    }
+                    f_source.setAttribute("type", "audio/wav");
+                    f_control.appendChild(f_source);
+                    f_control.controls = true;
+                    if (data[lang][type] != null){  
+                        f_upload.setAttribute('hidden', true);
+                    }
+                    else{
+                        f_delete.setAttribute('hidden', true);
+                    }
+                    f.appendChild(f_control);
+                    f.appendChild(f_delete);
+                    f.appendChild(f_upload);
+                    if (type === 'current'){
+                        
+                        current.appendChild(f);
+                    }
+                    if(type === 'next'){
+                        next.appendChild(f);
+                    }
+                }
+            }
+        });
+
+    })
+</script>
+</body>
+</html>

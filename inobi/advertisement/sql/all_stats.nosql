@@ -1,0 +1,6 @@
+
+
+select * from advertisement_devices_stats(1495602273.0, 1521786457.0);
+select * from advertisement_daily_stats(1495602273.0, 1521786457.0);
+select * from advertisement_hourly_stats(1495602273.0, 1521786457.0);
+select * from advertisement_uniqueness_stats(1495602273.0, 1521786457.0);

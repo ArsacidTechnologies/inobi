@@ -1,0 +1,13 @@
+class TransportMiddleware:
+
+    def get_name(self) -> str:
+        ...
+
+    def on_saved(self, bus):
+        ...
+
+    def on_updated(self, bus):
+        ...
+
+    def on_deleted(self, id):
+        ...

@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Notifications</title>
+</head>
+<style>
+    pre {
+        background-color: yellow;
+        border: 1px solid green;
+    }
+    h3, p, pre {
+        padding: 0; margin: 0
+    }
+    h3 {
+        font-size: 2rem;
+    }
+</style>
+<body>
+
+    <h1>Notifications</h1>
+
+    <ul>
+    {% for n in notifications %}
+        <li>
+            <h3>{{ n.type }}: {{ n.title }}</h3><p>{{ n.domain }}</p>
+            <p>Date: {{ n.datetime }}</p>
+            <p>{{ n.content }}</p>
+            <pre>Attributes: {{ json.dumps(n.attributes, indent=2) }}</pre>
+            <pre>Payload: {{ json.dumps(n.payload, indent=2) }}</pre>
+        </li>
+    {% endfor %}
+    </ul>
+
+</body>
+</html>

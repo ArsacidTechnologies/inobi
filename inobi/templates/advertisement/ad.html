@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ ad.title }}</title>
+</head>
+<body>
+
+    {% if ad.type == 'video' %}
+        <video src="{{ ad.source_full }}" controls></video>
+    {% elif ad.type == 'banner' %}
+        <img src="{{ ad.source_full }}" />
+    {% elif ad.type == 'iframe' %}
+        <iframe src="{{ ad.source_full }}" />
+    {% endif %}
+</body>
+</html>

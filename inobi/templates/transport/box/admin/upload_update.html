@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Upload New Box Update</title>
+</head>
+  <body>
+  <form method=post enctype=multipart/form-data>
+    <p>
+      <input type=file name=file>
+      <label><input type=checkbox name=apply checked>Apply update</label>
+      <input type="hidden" value="{{ jwt }}" name="jwt" />
+      <input type=submit value=Upload>
+    </p>
+    <h3>See update contents</h3>
+      <code>
+        <textarea 
+          name="script" 
+          style="width: 100%; min-height: 70vh; background: yellow; white-space: nowrap;"
+          >
+          {{ script }}
+        </textarea>
+      </code>
+    </body>
+  </form>
+</html>
