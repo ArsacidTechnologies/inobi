@@ -1,0 +1,862 @@
+swagger: '2.0'
+info:
+  description:
+    inobi route admin api
+    [http://inobi.kg/admin](http://inobi.kg/admin)
+  version: "1.0.0"
+  title: Inobi Route Backend
+tags:
+  - name: platforms
+  - name: stations
+  - name: routes
+  - name: directions
+paths:
+  '/transport/organization/v1/platforms':
+    post:
+      tags:
+        - platforms
+      summary: Create a platform
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      parameters:
+      - in: body
+        name: body
+        required: true
+        schema:
+          type: object
+          properties:
+            lat:
+              type: number
+            lng:
+              type: number
+            station_id:
+              type: number
+      responses:
+        200:
+          description: "success response"
+          schema:
+            $ref: '#/definitions/PlatformStationDirectionAudio'
+    get:
+      tags:
+        - platforms
+      summary: list of platforms
+      produces:
+      - application/json
+      parameters:
+      - name: free
+        in: query
+        description: only not linked platfroms
+        required: false
+        type: string
+      responses:
+        200:
+          description: "success response"
+          schema:
+            $ref: '#/definitions/PlatformList'
+  '/transport/organization/v1/platforms/{id}':
+    delete:
+      tags:
+        - platforms
+      summary: Deletes the platform
+      produces:
+      - application/json
+      parameters:
+      - name: id
+        in: path
+        description: ID of the request
+        required: true
+        type: integer
+      responses:
+        200:
+          description: "success response"
+          schema:
+            $ref: '#/definitions/PlatformStationDirectionAudio'
+    put:
+      tags:
+        - platforms
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      parameters:
+      - name: id
+        in: path
+        description: ID of the request
+        required: true
+        type: integer
+      - in: body
+        name: body
+        required: true
+        schema:
+          type: object
+          properties:
+            lat:
+              type: number
+            lng:
+              type: number
+      responses:
+        200:
+          description: "success response"
+          schema:
+            $ref: '#/definitions/PlatformStationDirectionAudio'
+    get:
+      tags:
+        - platforms
+      produces:
+      - application/json
+      parameters:
+      - name: id
+        in: path
+        description: ID of the request
+        required: true
+        type: integer
+
+      responses:
+        200:
+          description: "access"
+          schema:
+            $ref: '#/definitions/PlatformStationDirectionAudio'
+  '/transport/organization/v1/platforms/{id}/audios':
+    post:
+      tags:
+        - platforms
+      summary: Upload a platfrom's audio
+
+      consumes:
+      - multipart/form-data
+      produces:
+      - application/json
+      parameters:
+      - name: id
+        in: path
+        description: ID of the request
+        required: true
+        type: integer
+      - in: body
+        name: body
+        required: true
+        schema:
+          type: object
+          properties:
+            lang:
+              type: string
+              enum:
+                - ru
+                - ky
+            file:
+              type: string
+              format: wav
+            type:
+              type: string
+              enum:
+                - forward
+                - backward
+            direction:
+              type: integer
+              description: OPTIONAL uploads only for given direction
+      responses:
+        200:
+          description: "success response"
+          schema:
+            $ref: '#/definitions/PlatformStationDirectionAudio'
+  '/transport/organization/v1/stations':
+    post:
+      tags:
+        - stations
+      summary: Create a station
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      parameters:
+      - in: body
+        name: body
+        required: true
+        schema:
+          type: object
+          properties:
+            name:
+              type: string
+            full_name:
+              type: string
+            platforms:
+              type: array
+              items:
+                type: object
+                properties:
+                  lat:
+                    type: number
+                  lng:
+                    type: number
+      responses:
+        200:
+          description: "success response"
+          schema:
+            $ref: '#/definitions/StationPlatform'
+    get:
+      tags:
+        - stations
+      summary: list of stations
+      produces:
+      - application/json
+      responses:
+        200:
+          description: "success response"
+          schema:
+            type: object
+            properties:
+              data:
+                type: array
+                items:
+                  $ref: '#/definitions/Station'
+  '/transport/organization/v1/stations/{id}':
+    delete:
+      tags:
+        - stations
+      summary: Deletes the station
+      produces:
+      - application/json
+      parameters:
+      - name: id
+        in: path
+        description: ID of the request
+        required: true
+        type: integer
+      responses:
+        200:
+          description: "success response"
+          schema:
+            $ref: '#/definitions/StationPlatform'
+    put:
+      tags:
+        - stations
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      parameters:
+      - name: id
+        in: path
+        description: ID of the request
+        required: true
+        type: integer
+      - in: body
+        name: body
+        required: true
+        schema:
+          type: object
+          properties:
+            name:
+              type: string
+            full_name:
+              type: string
+      responses:
+        200:
+          description: "success response"
+          schema:
+            $ref: '#/definitions/StationPlatform'
+    get:
+      tags:
+        - stations
+      produces:
+      - application/json
+      parameters:
+      - name: id
+        in: path
+        description: ID of the request
+        required: true
+        type: integer
+
+      responses:
+        200:
+          description: "success response"
+          schema:
+            $ref: '#/definitions/StationPlatform'
+  '/transport/organization/v1/stations/{id}/platforms':
+    post:
+      tags:
+        - stations
+      summary: Create a station
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      parameters:
+      - name: id
+        in: path
+        description: ID of the request
+        required: true
+        type: integer
+      - in: body
+        name: body
+        required: true
+        schema:
+          type: object
+          properties:
+            platforms:
+              type: array
+              items:
+                type: integer
+                description: id of platform
+      responses:
+        200:
+          description: "success response"
+          schema:
+            $ref: '#/definitions/StationPlatform'
+  '/transport/organization/v1/routes':
+    post:
+      tags:
+        - routes
+      summary: Create a route
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      parameters:
+      - in: body
+        name: body
+        required: true
+        schema:
+          type: object
+          properties:
+            name:
+              type: string
+            type:
+              type: string
+              enum:
+                - bus
+                - trolleybus
+                - shuttle_bus
+            from_name:
+              type: string
+            to_name:
+              type: string
+            directions:
+              type: array
+              items:
+                type: object
+                properties:
+                  line:
+                    type: string
+                    format: https://developers.google.com/maps/documentation/utilities/polylineutility
+                  type:
+                    type: string
+                    enum:
+                      - forward
+                      - backward
+      responses:
+        200:
+          description: "success response"
+          schema:
+            $ref: '#/definitions/RouteDirection'
+    get:
+      tags:
+        - routes
+      summary: list of routes
+      produces:
+      - application/json
+      responses:
+        200:
+          description: "success response"
+          schema:
+            type: object
+            properties:
+              data:
+                type: array
+                items:
+                  $ref: '#/definitions/Route'
+  '/transport/organization/v1/routes/{id}':
+    delete:
+      tags:
+        - routes
+      summary: Deletes the route
+      produces:
+      - application/json
+      parameters:
+      - name: id
+        in: path
+        description: ID of the request
+        required: true
+        type: integer
+      responses:
+        200:
+          description: "success response"
+          schema:
+            $ref: '#/definitions/RouteDirection'
+    put:
+      tags:
+        - routes
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      parameters:
+      - name: id
+        in: path
+        description: ID of the request
+        required: true
+        type: integer
+      - in: body
+        name: body
+        required: true
+        schema:
+          type: object
+          properties:
+            name:
+              type: string
+            type:
+              type: string
+              enum:
+                - bus
+                - trolleybus
+                - shuttle_bus
+            from_name:
+              type: string
+              description: name of first platform
+            to_name:
+              type: string
+              description: name of last platform
+      responses:
+        200:
+          description: "success response"
+          schema:
+            $ref: '#/definitions/RouteDirection'
+    get:
+      tags:
+        - routes
+      produces:
+      - application/json
+      parameters:
+      - name: id
+        in: path
+        description: ID of the request
+        required: true
+        type: integer
+
+      responses:
+        200:
+          description: "success response"
+          schema:
+            $ref: '#/definitions/RouteDirection'
+  '/transport/organization/v1/routes/{id}/directions':
+    post:
+      tags:
+        - routes
+      summary: Link directions
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      parameters:
+      - name: id
+        in: path
+        description: ID of the request
+        required: true
+        type: integer
+      - in: body
+        name: body
+        required: true
+        schema:
+          type: object
+          properties:
+            directions:
+              type: array
+              items:
+                type: integer
+                description: id of direction
+      responses:
+        200:
+          description: "success response"
+          schema:
+            $ref: '#/definitions/RouteDirection'
+  '/transport/organization/v1/directions':
+    post:
+      tags:
+        - directions
+      summary: Create a direction
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      parameters:
+      - in: body
+        name: body
+        required: true
+        schema:
+          type: object
+          properties:
+            line:
+              type: string
+              format: https://developers.google.com/maps/documentation/utilities/polylineutility
+            type:
+              type: string
+              enum:
+                - forward
+                - backward
+            route_id:
+              type: number
+      responses:
+        200:
+          description: "success response"
+          schema:
+            $ref: '#/definitions/DirectionRoutePlatform'
+    get:
+      tags:
+        - directions
+      summary: list of routes
+      produces:
+      - application/json
+      responses:
+        200:
+          description: "success response"
+          schema:
+            type: object
+            properties:
+              data:
+                type: array
+                items:
+                  $ref: '#/definitions/DirectionRoutee'
+  '/transport/organization/v1/directions/{id}':
+    delete:
+      tags:
+        - directions
+      summary: Deletes the direction
+      produces:
+      - application/json
+      parameters:
+      - name: id
+        in: path
+        description: ID of the request
+        required: true
+        type: integer
+      responses:
+        200:
+          description: "success response"
+          schema:
+            $ref: '#/definitions/DirectionRoutePlatform'
+    put:
+      tags:
+        - directions
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      parameters:
+      - name: id
+        in: path
+        description: ID of the request
+        required: true
+        type: integer
+      - in: body
+        name: body
+        required: true
+        schema:
+          type: object
+          properties:
+            type:
+              type: string
+              enum:
+                - forward
+                - backward
+            line:
+              type: string
+      responses:
+        200:
+          description: "success response"
+          schema:
+            $ref: '#/definitions/DirectionRoutePlatform'
+    get:
+      tags:
+        - directions
+      produces:
+      - application/json
+      parameters:
+      - name: id
+        in: path
+        description: ID of the request
+        required: true
+        type: integer
+
+      responses:
+        200:
+          description: "success response"
+          schema:
+            $ref: '#/definitions/DirectionRoutePlatform'
+  '/transport/organization/v1/directions/{id}/platforms':
+    post:
+      tags:
+        - directions
+      summary: Link directions
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      parameters:
+      - name: id
+        in: path
+        description: ID of the request
+        required: true
+        type: integer
+      - in: body
+        name: body
+        required: true
+        schema:
+          type: object
+          properties:
+            platforms:
+              type: array
+              items:
+                type: integer
+                description: id of direction
+      responses:
+        200:
+          description: "success response"
+          schema:
+            $ref: '#/definitions/DirectionRoutePlatform'
+
+definitions:
+  Audio:
+    type: object
+    properties:
+      current:
+        type: string
+      next:
+        type: string
+  AudioLang:
+    type: object
+    properties:
+      ky:
+        $ref: '#/definitions/Audio'
+      ru:
+        $ref: '#/definitions/Audio'
+  Platform:
+    type: object
+    properties:
+      id:
+        type: integer
+        format: int64
+      lat:
+        type: number
+      lng:
+        type: number
+      audio:
+        $ref: '#/definitions/AudioLang'
+
+  PlatformStation:
+    type: object
+    properties:
+      id:
+        type: integer
+        format: int64
+      lat:
+        type: number
+      lng:
+        type: number
+      station:
+        $ref: '#/definitions/Station'
+  PlatformStationDirectionAudio:
+    type: object
+    properties:
+      id:
+        type: integer
+        format: int64
+      lat:
+        type: number
+      lng:
+        type: number
+      station:
+        $ref: '#/definitions/Station'
+      audio:
+        $ref: '#/definitions/AudioLang'
+      directions:
+        type: array
+        items:
+          $ref: '#/definitions/DirectionRoute'
+  PlatformDirectionAudio:
+    type: object
+    properties:
+      id:
+        type: integer
+        format: int64
+      lat:
+        type: number
+      lng:
+        type: number
+      audio:
+        $ref: '#/definitions/AudioLang'
+      directions:
+        type: array
+        items:
+          $ref: '#/definitions/DirectionRoute'
+
+  Station:
+    type: object
+    properties:
+      id:
+        type: integer
+        format: int64
+      name:
+        type: string
+      full_name:
+        type: string
+  StationPlatform:
+    type: object
+    properties:
+      id:
+        type: integer
+        format: int64
+      name:
+        type: string
+      full_name:
+        type: string
+      platforms:
+        type: array
+        items:
+          $ref: '#/definitions/PlatformDirectionAudio'
+  Route:
+    type: object
+    properties:
+      id:
+        type: integer
+        format: int64
+      type:
+        type: string
+        enum:
+        - bus
+        - trolleybus
+        - shuttle_bus
+      name:
+        type: string
+      from_name:
+        type: string
+      to_name:
+        type: string
+  RouteDirection:
+    type: object
+    properties:
+      id:
+        type: integer
+        format: int64
+      type:
+        type: string
+        enum:
+        - bus
+        - trolleybus
+        - shuttle_bus
+      name:
+        type: string
+      from_name:
+        type: string
+      to_name:
+        type: string
+      directions:
+        type: array
+        items:
+          $ref: '#/definitions/DirectionPlatform'
+
+  Direction:
+    type: object
+    properties:
+      id:
+        type: integer
+        format: int64
+      type:
+        type: string
+        enum:
+        - forward
+        - backward
+      line:
+        type: string
+        format: https://developers.google.com/maps/documentation/utilities/polylineutility
+  DirectionRoute:
+    type: object
+    properties:
+      id:
+        type: integer
+        format: int64
+      type:
+        type: string
+        enum:
+        - forward
+        - backward
+      line:
+        type: string
+        format: https://developers.google.com/maps/documentation/utilities/polylineutility
+      route:
+        $ref: '#/definitions/Route'
+      audio:
+        $ref: '#/definitions/AudioLang'
+  DirectionRoutee:
+    type: object
+    properties:
+      id:
+        type: integer
+        format: int64
+      type:
+        type: string
+        enum:
+        - forward
+        - backward
+      line:
+        type: string
+        format: https://developers.google.com/maps/documentation/utilities/polylineutility
+      route:
+        $ref: '#/definitions/Route'
+  DirectionRoutePlatform:
+    type: object
+    properties:
+      id:
+        type: integer
+        format: int64
+      type:
+        type: string
+        enum:
+        - forward
+        - backward
+      line:
+        type: string
+        format: https://developers.google.com/maps/documentation/utilities/polylineutility
+      route:
+        $ref: '#/definitions/Route'
+      platforms:
+        type: array
+        items:
+          $ref: '#/definitions/Platform'
+
+  DirectionPlatform:
+    type: object
+    properties:
+      id:
+        type: integer
+        format: int64
+      type:
+        type: string
+        enum:
+        - forward
+        - backward
+      line:
+        type: string
+        format: https://developers.google.com/maps/documentation/utilities/polylineutility
+      platforms:
+        $ref: '#/definitions/Platform'
+
+
+  PlatformList:
+    type: object
+    properties:
+      data:
+        type: array
+        items:
+          $ref: '#/definitions/PlatformStation'
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,1 @@
+Frontend, after calling ads/random, must call register/views for ads to be added.

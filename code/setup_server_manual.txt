@@ -1,0 +1,429 @@
+I setup the inobi server like installed all perquisites and DB requirements by writing a setup file in which I've done all the steps to complete the installation. Later I'll write a shell script to setup and run the inobi server with just a one enter key!😉
+Following are those steps that I just collected from debugging process of inobi server in dev mode.
+
+NOTE : After you've done all the setups just remember to reboot the server.
+NOTE : Remember to clone the repo in VPS and read the whole code or understand the main idea behind the project in order to continue.  
+NOTE : Below steps are collected from Aly Ahmadi and Abdullah docs.
+NOTE : Remember to truncate bus_info and traccar positions table for production using TRUNCATE TABLE table_name RESTART IDENTITY; command 
+NOTE : Start a crontab using inobi.crontab file inside the root folder with crontab inobi.crontab command
+NOTE : For android APIs setup please refer to ANDROID API SETUP section at the bottom of this page.
+NOTE : Remeber to change the address and port inside /etc/nginx/conf.d/inobi.conf file to yours and also remember to tell the sysadmin to open your ports. 
+NOTE : After running pm2 startup and pm2 save commands you have your server running on startup and you can check the server status using sudo systemctl status pm2-mehran.service command.
+NOTE : Remember to check that migration command for transports table works correctly, to add more columns to the table edit Transports class in \inobi\inobi\transport\DataBase\models\__init__.py
+NOTE : Remember to change the BUNDLE_URL on line 39 in \inobi\resources\transport\box\updates\update to the URL of your VPS.
+
+≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣ DEV SSH SERVER ≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣
+host : 192.168.1.179
+username : mehran
+password : mehran@88410835
+
+≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣ QAZVIN PRODUCTION ≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣
+static ip            => 192.168.12.34
+subnet               => 192.168.12.0/24
+gateway              => 192.168.12.1
+dns                  => 192.168.10.143, 192.168.10.144
+ssh pass from inside => aranobi@4456%
+username             => aranobi
+vpn for ssh          => host: 185.44.112.134, username: araavl, password: 456bh&%#
+public ip       => 78.38.56.34
+
+≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣ BISHKEK DIGITAL OCEAN SERVER ≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣
+connection tool : anydesk
+username: 371135798
+password: sepehr@88410835
+mobaxterm password: ShitHappens9932
+
+≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣ RIGHTEL SERVER ≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣
+connection tool : anyconnect
+username : ramin.ehteshamzadeh
+host          : sslvpn.rightel.ir
+password : Ramin1234?
+
+≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣ RIGHTEL SSH SERVER ≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣
+host : 10.200.124.250
+username : ara
+password : Ar@ma#250
+
+≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣ MOBINNET SSH SERVER ≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣
+SSH VPS
+================
+IP: 37.156.29.85
+
+User: root
+Pass: P@ssw0rd1399
+NewPass: P@YCF8uLhL?BHrTs
+
+User: ara
+Pass: Ara@1234NotSecureBitch
+
+
+
+Backend
+========
+Server Address:
+http://37.156.29.85:4325
+
+FlaskSecret: u!TD^DxJB_Cx7YRN
+TokenSecret: u!TD^DxJB_Cx7YRN
+
+Traccar:
+user: admin
+password: traccaradmin
+
+
+Admin user:
+email: admin@mobinnet.ir
+username: admin
+password: LjWEw9EScyvBXsub!!
+
+
+Box JWT:
+ZXlKMGVYQWlPaUpLVjFRaUxDSmhiR2NpT2lKSVV6STFOaUo5LmV5SjBhVzFsSWpveE5qQTFOakV5TlRZd0xDSnpZMjl3WlhNaU9sc2lkSEpoYm5Od2IzSjBYM1Z1YVhRaUxDSjBjbUZ1YzNCdmNuUmZkVzVwZENoa1pXWmhkV3gwS1NKZExDSnBZWFFpT2pFMk1EVTJNVEkxTmpBc0ltbHpjeUk2SW1sdVptOUFZWEpoWjJ4dlltRnNMbWx5SW4wLnhWcE1vazE5Z2l3aUV1eFU1Rk8xNWV5enNxX3FrdUgzRU1qSGY2RzAzVW8=
+
+
+
+Database
+========
+Postgres
+database: inobi
+user: inobi
+pass: vTchZS#Dx4f?
+
+database: traccar
+user: traccar
+pass: xStEvu4dMtMU
+
+Reids
+password: 9#jeVR=8f5*A9F6W
+
+
+
+Box
+========
+APN
+APN_name = lte4mobinnet
+
+
+Frontend Panels
+========
+WebAdmin:
+http://37.156.29.85:8001
+Draw Routes:
+http://37.156.29.85:8002
+WebAdsAdmin:
+http://37.156.29.85:8003
+
+
+Commands
+========
+sudo firewall-cmd --zone=public --add-port=8082/tcp
+sudo firewall-cmd --zone=public --permanent --add-port=8082/tcp
+
+
+≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣ NGINX SETUP ≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣
+
+The port of inobi python server is 8586 and we want to do a reverse proxy and a port forwarding using nginx to redirect incoming requests from 8585 from our clients to this port of our back-end and 5055, 5010 of our traccar POST APIs. All we have to do is as follow. On server-side do: cd utils && unzip reverse_setup.zip && sudo mv common/ inobi.conf realip.conf /etc/nginx/conf.d/ && sudo systemctl restart nginx
+
+
+To setup all UI servers first put all UIs in /usr/share/nginx/html folder and follow these steps:
+
+1) cd utils && uznip nginx_setup.zip
+2) sudo mv inobi_draw_routes inobi_web_admin inobi_web_ads_admin /etc/nginx/sites-available/
+3) sudo ln -s /etc/nginx/sites-available/inobi_web_admin /etc/nginx/sites-enabled/ && sudo ln -s /etc/nginx/sites-available/inobi_web_ads_admin /etc/nginx/sites-enabled/ && sudo ln -s /etc/nginx/sites-available/inobi_draw_routes /etc/nginx/sites-enabled/
+4) sudo systemctl reload nginx
+
+To fix the  ​nginx.service: Failed to read PID from file /run/nginx.pid: Invalid argument issue
+on a ssh console, as root (sudo bash) , use the commands bellow:
+
+mkdir /etc/systemd/system/nginx.service.d
+printf "[Service]\nExecStartPost=/bin/sleep 0.1\n" > /etc/systemd/system/nginx.service.d/override.conf
+systemctl daemon-reload
+systemctl restart nginx
+
+
+
+
+
+≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣  DB & MODULES SETUP ≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣ 
+sudo apt update && sudo apt-get install apt-transport-https ca-certificates curl gnupg-agent software-properties-common
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add - && sudo apt-key fingerprint 0EBFCD88
+sudo add-apt-repository  "deb [arch=amd64] https://download.docker.com/linux/ubuntu  $(lsb_release -cs) stable"
+sudo apt-get update && sudo apt-get install docker-ce docker-ce-cli containerd.io npm && sudo npm install pm2@latest -g
+sudo apt install postgresql postgresql-10 postgresql-contrib libpq-dev redis-server python3-dev python3-venv nginx
+redis-cli ping
+sudo systemctl status redis
+sudo -u postgres psql
+create user "inobi-user-name" with password 'inobi';
+create user "traccar-user-name" with password 'traccar';
+create database inobi with owner "inobi-user-name";
+create database traccar with owner "traccar-user-name";
+GRANT ALL PRIVILEGES ON DATABASE inobi TO inobi;
+GRANT ALL PRIVILEGES ON DATABASE traccar TO traccar;
+alter role "inobi-user-name" superuser; /////////////////////////////////////// first connect to related db
+alter role "traccar-user-name" superuser; /////////////////////////////////////// first connect to related db
+reassign owned by "old- user" to inobi; /////////////////////////////////////// to import a db that exported with different username we have to change the db username to the exported one then we change it back to what we want to be.
+alter database postgres SET timezone TO 'posix/Asia/Tehran';
+alter database "inobi" set timezone to 'posix/Asia/Tehran';
+\c inobi
+create extension "uuid-ossp";
+\q
+cp settings.ini.example settings.ini
+
+≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣  RUN SERVER ≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣
+python3 -m venv venv
+source venv/bin/activate && cd inobi && sudo rm -r migrations
+pip install wheel && pip install -r requirements.txt
+export FLASK_APP='inobi:make_app()'
+export FLASK_DEBUG=1
+flask db init
+flask db migrate -m "Initial"
+flask db upgrade
+python runhooks.py --migrations
+sudo apt install openjdk-8-jdk openjdk-8-jre
+wget -O traccar-3.17.zip https://github.com/traccar/traccar/releases/download/v3.17/traccar-linux-3.17.zip
+unzip traccar-3.17.zip
+sudo ./traccar.run
+python runserver.py --with-hooks
+
+
+NOTE : set shekan DNS before building docker containers and images
+NOTE : change read and write permission for inobi and migrations folder ::::::::::::::: sudo chmod 777 inobi && sudo chmod 777 migrations
+NOTE : you can change redis password in /etc/redis/redis.conf within `requirepass foobared` line
+NOTE : update settings.ini based on your configurations
+NOTE : to export inobi db ::::::::: sudo pg_dump --host=localhost --username=inobi inobi > inobi.sql
+NOTE : to import inobi db ::::::::: sudo psql -h localhost -U inobi -d inobi < inobi.sql
+NOTE : to export traccar db ::::::::: sudo pg_dump --host=localhost --username=traccar traccar > traccar.sql
+NOTE : to import tables in traccar db ::::::::: sudo psql -h localhost -U traccar -d traccar < /home/$USER/inobi/inobi/transport/traccar_md/sql/traccar_reports.sql
+NOTE : to import bus_info table in inobi db ::::::::: sudo psql -h localhost -U inobi -d inobi < /home/$USER/inobi/inobi/transport/sql/bus_info.sql => OPTIONAL : cause the code do this for us!
+NOTE : to import transports table in inobi db ::::::::: sudo psql -h localhost -U inobi -d inobi < /home/$USER/inobi/inobi/transport/sql/02_transports.sql => OPTIONAL : cause the code do this for us!
+NOTE : to add ip, port and tts to transports table ::::::::::: alter table transports add column ip varchar, add column port smallint, add column tts int;
+NOTE : use flask db migrate -m "commit_here" and flask db upgrade after any changes to database models or their fields
+NOTE : start traccar   ::::::::: sudo /etc/init.d/traccar start or sudo /opt/traccar/bin/startDaemon.sh or sudo systemctl start traccar.service
+NOTE : stop  traccar   ::::::::: sudo /etc/init.d/traccar stop or sudo /opt/traccar/bin/stopDaemon.sh or sudo systemctl stop traccar.service
+NOTE : restart traccar ::::::::: sudo /etc/init.d/traccar restart or sudo systemctl restart traccar.service
+NOTE : Add these lines to /opt/traccar/conf/traccar.xml
+    <entry key='database.driver'>org.postgresql.Driver</entry>
+    <entry key='database.url'>jdbc:postgresql://127.0.0.1:5432/traccar</entry>
+    <entry key='database.user'>traccar</entry>
+    <entry key='database.password'>traccar</entry>
+NOTE : after editing .yml file restart the traccar service then traccar will create all necessary tables for you
+NOTE : port 5432 is the postgres DB port
+NOTE : inobi db user and pass is inobi
+NOTE : traccar db user and pass is traccar
+NOTE : run ngrok to get the public url ::::::::: . start_ngrok.sh 8585&& echo $NGROK_PUBLIC_URL
+NOTE : stop ngrok from running         ::::::::: . stop_ngrok.sh
+NOTE : run server using pm2            ::::::::: pm2 start -i max ./runserver.py --name=inobi --interpreter=/home/mehran/venv/bin/python3 --  --with-hooks
+NOTE : stop inobi server               ::::::::: pm2 stop inobi
+NOTE : start inobi server again        ::::::::: pm2 start inobi
+NOTE : generating startup script    :::::::::: pm2 startup -> copy and paste in terminal what pm2 gives you after running this command
+NOTE : saving current process list   ::::::::::: pm2 save
+
+
+
+≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣ BOX SETUP ≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣ 
+inside VPS: 
+______
+STEP 1
+------
+cd inobi && mkdir -p resources/transport/box/updates/
+
+______
+STEP 2
+------
+cat > resources/transport/box/updates/update
+version="$1"
+VERSION_FILE='/version'
+
+
+inside BOX: 
+______
+STEP 3
+------
+sudo mount -o remount,rw /
+
+
+______
+STEP 4
+[test]
+------ 
+curl -s localhost:8585/transport/box/version | grep 1
+curl -s localhost:8585/transport/box/internet | grep 1
+curl -s localhost:8585/transport/box/update | md5sum - resources/transport/box/updates/update
+
+
+NOTE : there might be other settings later on but this one was in Abdullah  docs.
+
+≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣  AUTH SETUP ≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣ 
+truncate tables for new registration with same params
++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    TRUNCATE TABLE verified_contacts RESTART IDENTITY;
+    TRUNCATE TABLE users RESTART IDENTITY;
+    TRUNCATE TABLE logins RESTART IDENTITY;
+    TRUNCATE TABLE user_logins RESTART IDENTITY;
+
+sudo -u postgres psql
+\c inobi
+insert into verified_contacts (type, contact) values ('email', 'admin@gmail.com');
+update users set scopes = '["inobi"]' where id = 1;  ####### note: id in sql statement must be set from response of previous command
+curl localhost:8585/app/v2/register -H 'Content-Type: application/json' -d '{"name": "Admin", "email": "admin@gmail.com", "username": "admin", "pwd": "admin123"}'
+sudo -u postgres psql
+\c inobi
+insert into box_settings (key, value) values ('transport:box:version', '1'), ('transport:box:internet', 'true');
+insert into cities (name, lat, lng, zoom, lang, country, db_version, payload) values ('Qazvin', 36.2811997, 49.9466457, 12, 'fa', '{}', 1, '{}') returning id;
+insert into transport_organizations (name, traccar_username, traccar_password, payload, city, settings) values ('ARA', 'admin', 'admin', '{}', 1, '{}'); ####### note: city_id is from previous response
+insert into transport_organization_users (organization, "user", role) values (1, 1, 'admin'); ######## note: user and organization ids
+insert into transport_organization_admins (organization, "user") values (1, 1); ######### note: we must add admin user in the `transport_organization_admins` table of database too.
+curl localhost:8585/transport/organization/v1/login -H 'Content-Type: application/json' -d '{"username": "admin", "pwd": "admin123"}'
+
+
+≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣ DUMP TCP POST REQUESTS IN SERVER ≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣ 
+sudo tcpdump -i enp0s8 -s 0 -A 'tcp dst port 8585 and tcp[((tcp[12:1] & 0xf0) >> 2):4] = 0x47455420 or tcp[((tcp[12:1] & 0xf0) >> 2):4] = 0x504F5354 or tcp[((tcp[12:1] & 0xf0) >> 2):4] = 0x48545450 or tcp[((tcp[12:1] & 0xf0) >> 2):4] = 0x3C21444F and host 192.168.1.179' | sudo tee /home/post_dump.txt 
+https://www.middlewareinventory.com/blog/tcpdump-capture-http-get-post-requests-apache-weblogic-websphere/
+NOTE : remember to change the port, device and host ip to yours
+
+≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣ ANDROID API SETUP ≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣ 
+login using postman to generate the JWT token. the scopes will be transport_admin
+
+
+SAMPLE GENERATED TOKEN FROM LOGIN
+ZXlKMGVYQWlPaUpLVjFRaUxDSmhiR2NpT2lKSVV6STFOaUo5LmV5SjFjMlZ5SWpwN0ltbGtJam94TENKeVpXZHBjM1JsY2w5MGFXMWxJam94TmpFd05EUTRNakUxTGpnMU5EUTNMQ0psYldGcGJDSTZJbUZrYldsdVFHZHRZV2xzTG1OdmJTSXNJbTVoYldVaU9pSkJaRzFwYmlJc0luQm9iMjVsSWpwdWRXeHNMQ0p6WTI5d1pYTWlPbHNpZEhKaGJuTndiM0owWDJGa2JXbHVJbDBzSW1KcGNuUm9aR0Y1SWpwdWRXeHNMQ0p3WVhsc2IyRmtJanB1ZFd4c0xDSnNiMmRwYmlJNmV5SnBaQ0k2TVN3aWNtVm5hWE4wWlhKZmRHbHRaU0k2TVRZeE1EUTBPREl4TlM0NE5UUTBOeXdpZFhObGNtNWhiV1VpT2lKaFpHMXBiaUo5TENKemIyTnBZV3hmZFhObGNpSTZiblZzYkgwc0luUnlZVzV6Y0c5eWRGOXZjbWRoYm1sNllYUnBiMjRpT25zaWFXUWlPakVzSW01aGJXVWlPaUpCVWtFaUxDSjBjbUZqWTJGeVgzVnpaWEp1WVcxbElqb2lZV1J0YVc0aUxDSndZWGxzYjJGa0lqcDdmU3dpWTJsMGVTSTZleUpwWkNJNk1Td2libUZ0WlNJNklsRmhlblpwYmlJc0lteGhibWNpT2lKbVlTSXNJbU52ZFc1MGNua2lPbnQ5TENKa1lsOTJaWEp6YVc5dUlqb3hMQ0p3WVhsc2IyRmtJanA3ZlN3aWJHOWpZWFJwYjI0aU9uc2liR0YwSWpvek5pNHlPREV4T1RrM0xDSnNibWNpT2pRNUxqazBOalkwTlRjc0lucHZiMjBpT2pFeUxqQjlmU3dpYzJWMGRHbHVaM01pT250OWZTd2ljMk52Y0dWeklqcGJJblJ5WVc1emNHOXlkRjloWkcxcGJpSmRMQ0pwWVhRaU9qRTJNVEkyTVRRMU5EUXNJbVY0Y0NJNk1UWXhNall4T0RFME5IMC55RlVUUzE1U1pvNXR5Um1xX3o5eEpraTltRmszUDZnU19oQy1mTGVxSHc0
+
+or you can put this data in the payload of JWT. the scopes will be inobi
+
+{
+  "user": {
+    "id": 1
+  },
+  "transport_organization": {
+    "id": 1,
+    "city": {
+      "id": 1
+    }
+  },
+  "scopes": [
+    "inobi"
+  ]
+}
+
+
+
+SAMPLE GENERATED TOKEN FROM ABOVE PAYLOAD
+ZXlKaGJHY2lPaUpJVXpJMU5pSXNJblI1Y0NJNklrcFhWQ0o5LmV5SjFjMlZ5SWpwN0ltbGtJam94ZlN3aWRISmhibk53YjNKMFgyOXlaMkZ1YVhwaGRHbHZiaUk2ZXlKcFpDSTZNU3dpWTJsMGVTSTZleUpwWkNJNk1YMTlMQ0p6WTI5d1pYTWlPbHNpYVc1dllta2lYWDAuOFpZMHlNTnlPMFNnZG1tbXBGZXJYcmxSRGNZWFRLbzF3M2NPbUdUMlEwMA==
+
+
+We must first call `/v1/cities/<int:city_id>/upgrader/` to upgrade a city database.
+Then call `/v1/cities/<int:city_id>/upgrader/<uuid:process_id>` to finish it's upgrade.
+Then android app must call `city_data` API and then `subscribe`.
+
+
+
+=================================================================================================================================
+STEP 1 : 
+
+call with POST request on transport_admin scope => curl -X POST -d "token=<GENERATED_TOKEN>" http://localhost:8585/v1/cities/1/upgrader/
+Response:
+{
+    "status": 200,
+    "message": "OK",
+    "process": {
+        "process": {
+            "pid": 32446,
+            "start_time": 1612615406.3738005
+        },
+        "_fn": "e7880f86-8943-4aff-8e5a-c9f047318d0e.c1.to1.u1.db.init",
+        "name": "e7880f86-8943-4aff-8e5a-c9f047318d0e",
+        "city": 1,
+        "organization": 1,
+        "user": 1,
+        "stage": "init"
+    }
+}
+
+
+******************************************************************************************************
+when I call above api on the server an error just pop the fuck up on the screen says:
+File "/home/mehran/inobi/inobi/city/views/dbupgrader.py", line 136, in _start_bfs_extraction_process
+3|inobi  |     bfs._extract_bfs(conn)
+3|inobi  |   File "/home/mehran/inobi/inobi/city/bfs.py", line 206, in _extract_bfs
+3|inobi  |     print('Total links:', FT.reduce(lambda a, b: a + b, map(len, dl.values())))
+3|inobi  | TypeError: reduce() of empty sequence with no initial value
+******************************************************************************************************
+
+
+call with GET request on transport_admin scope => curl -X POST -d "token=<GENERATED_TOKEN>" http://localhost:8585/v1/cities/1/upgrader/
+Response:
+{
+    "status": 200,
+    "message": "OK",
+    "processes": [
+        {
+            "name": "e7880f86-8943-4aff-8e5a-c9f047318d0e",
+            "city": "1",
+            "organization": "1",
+            "user": "1",
+            "stage": "processing",
+            "file": {
+                "modified": 1612615406.8017738,
+                "accessed": 1612615406.8017738,
+                "size": 53248
+            },
+            "process": null,
+            "_fn": "e7880f86-8943-4aff-8e5a-c9f047318d0e.c1.to1.u1.db.processing",
+            "_fp": "resources/city/dbupgrader/e7880f86-8943-4aff-8e5a-c9f047318d0e.c1.to1.u1.db.processing"
+        }
+    ]
+}
+
+=================================================================================================================================
+STEP 2 : 
+
+call with GET request on transport_admin scope => curl -X GET -d "token=<GENERATED_TOKEN>"  http://localhost:8585/v1/cities/1/upgrader/<PID>/
+Response:
+{
+    "status": 200,
+    "message": "OK",
+    "process": {
+        "name": "e7880f86-8943-4aff-8e5a-c9f047318d0e",
+        "city": "1",
+        "organization": "1",
+        "user": "1",
+        "stage": "processing",
+        "file": {
+            "modified": 1612615406.8017738,
+            "accessed": 1612615406.8017738,
+            "size": 53248
+        },
+        "process": null,
+        "_fn": "e7880f86-8943-4aff-8e5a-c9f047318d0e.c1.to1.u1.db.processing",
+        "_fp": "resources/city/dbupgrader/e7880f86-8943-4aff-8e5a-c9f047318d0e.c1.to1.u1.db.processing"
+    }
+}
+
+call with POST request on transport_admin scope => curl -X POST -d "token=<GENERATED_TOKEN>"  http://localhost:8585/v1/cities/1/upgrader/<PID>/
+Response:
+
+
+**************************CAN'T CALL THIS FUCKING API DUE TO UNFINISHED PROCESSING**************************
+AssertionError => assert status['stage'] == config.CityUpgradeStage.DONE.value
+[[[I think the issue is because of python GIL]]]
+************************************************************************************************************
+
+
+=================================================================================================================================
+
+NOTE : with inobi scopes you can't see the organization id in the response body of APIs. but with transport_admin you can't!
+NOTE :  remember to use APP_TOKEN_SECRET in setting.ini to generate the token in jwt.io site.
+NOTE :  after generating the token just copy it and paste it in some websites that can generate base64 encoding like https://www.base64encode.net/ then put the encoded jwt in token header in the curl api.
+NOTE :  PID is the generated name in first call api response.
+NOTE : "name" field in first api call response is the process ID.
+NOTE : transport_organization, user and city id ​might be different in each time you want to call this api - just check the database - but in this case is 1 for all of them. 
+NOTE : check below tables inside inobi database to find those above ids and set them property. 
+cities
+transport_organizations
+transport_organization_users
+transport_organization_admins
+
+
+
+
+

@@ -1,0 +1,3 @@
+[submodule "pygeo"]
+	path = pygeo
+	url = https://github.com/InobiLLC/inobi-geolib-python.git

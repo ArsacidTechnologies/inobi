@@ -1,0 +1,34 @@
+.inobi_env/
+.env/
+.idea/
+
+migrations/
+# /resources
+
+inobi/static/advertisement
+
+*__pycache__*
+
+*.flv
+*.mp4
+*.avi
+*.pyc
+*.cache
+
+test/
+
+
+*.log
+
+InitPostgres
+
+t_est/*.db
+
+/scripts/mobile_app/*.db
+
+# settings.ini
+
+.vscode
+.DS_Store
+
+/.pytest_cache/

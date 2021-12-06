@@ -1,0 +1,4 @@
+# pre calculate transport report for a day
+0 1 * * * curl http://localhost:8585/transport/cron/dump_report
+# socketio custom aliveness checker
+*/1 * * * * curl http://localhost:8585/transport/socketio/check && sleep 2 && curl http://localhost:8585/transport/socketio/delete

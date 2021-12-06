@@ -1,0 +1,100 @@
+
+
+version: '3.3'
+
+
+services:
+  # ============================================================================
+  web:
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    volumes:
+      - app:/opt/inobi/
+      - static_volume:/opt/inobi/inobi/static
+      - media_volume:/opt/inobi/resources/advertisement/media
+      - temp_volume:/opt/inobi/resources/advertisement/temp
+    expose:
+      - 8586
+    networks:
+      - app-net
+    env_file: .env
+    depends_on:
+      - db
+    restart: always
+  # ============================================================================
+  redis:
+    image: "redis:alpine"
+    networks:
+      - app-net
+    volumes:
+      - redis-conf:/usr/local/etc/redis/redis.conf
+      - redis-dump:/var/lib/redis
+    expose:
+      - 6379
+    depends_on:
+      - web
+    restart: always
+  # ============================================================================
+  traccar:
+    build: ./services/traccar
+    expose:
+      - "5000-5150"
+      - "8082"
+    networks:
+      - app-net
+    volumes:
+      - traccar-db:/opt/traccar/data/database:rw
+      - traccar-logs:/opt/traccar/logs:rw
+    depends_on:
+      - db
+    restart: always
+  # ============================================================================
+  db:
+    build: ./services/postgres
+    env_file: .env
+    networks:
+      - app-net
+    expose:
+      - 5432
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    restart: always
+  # ============================================================================
+  nginx:
+    build: ./services/nginx
+    volumes:
+      - static_volume:/opt/inobi/inobi/static
+      - media_volume:/opt/inobi/resources/advertisement/media
+      - temp_volume:/opt/inobi/resources/advertisement/temp
+    ports:
+      - 8585:8585
+    networks:
+      - app-net
+    depends_on:
+      - web
+    restart: always
+  # ============================================================================
+  register:
+    build: ./services/register
+    networks:
+      - app-net
+    depends_on:
+      - db
+      - nginx
+      - web
+  # ============================================================================
+networks:
+  app-net:
+    driver: bridge
+volumes:
+  app:
+  postgres_data:
+  traccar-db:
+  traccar-conf:
+  traccar-logs:
+  redis-conf:
+  redis-dump:
+  static_volume:
+  media_volume:
+  temp_volume:

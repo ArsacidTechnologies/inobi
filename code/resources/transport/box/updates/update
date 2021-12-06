@@ -1,0 +1,393 @@
+#!/bin/bash
+
+
+# warning only /tmp folder is writable now
+TMP_ARCHIVE_PATH='/tmp/update.tar.gz'
+
+TMP_UNPACKED_DIR='/tmp/bundle'
+
+VERSION_FILE='/version'
+
+
+
+version="$1"
+
+# evaluate this when need to end script successfully
+function finish-update {
+
+    # aka commit changes
+    echo "$version" | sudo tee "$VERSION_FILE"
+
+    # apply them
+    if [ "$1" == '--no-reboot' ]; then 
+        echo not rebooting
+    else 
+        sudo reboot
+    fi
+
+    # to not to shoot leg of yours
+    exit
+}
+
+
+
+if ls /home | grep orangepi; then
+
+    # orangepi stuff
+
+    # upload your data to some url
+    BUNDLE_URL='http://198.50.214.20:4325/advertisement/v1/uploads/external/725a2641-2f7f-4ce5-bc7d-134643b6ba21'
+
+    # remount system for write
+    sudo mount -o remount,rw /
+
+    if wget "$BUNDLE_URL" -O "$TMP_ARCHIVE_PATH"; then
+
+        # creating bundle directory
+        sudo mkdir -p "$TMP_UNPACKED_DIR"
+        
+        # unpacking stuff to bundle directory
+        sudo tar -xzf "$TMP_ARCHIVE_PATH" -C "$TMP_UNPACKED_DIR"
+
+
+
+        #############
+        ### VOICE ###
+
+        # installing new voice-annoucement requirements
+        sudo pip3 install -r "$TMP_UNPACKED_DIR/voice/requirements.txt"
+
+        # voice announcement stuff
+        sudo systemctl stop voice-announcement
+        # aka reset voice-announcement
+        sudo rm -rf /mnt/media/voice_announcement/manage.json
+        # replacing files
+        sudo rm -rf /usr/local/sbin/voice_announcement  
+        sudo mv "$TMP_UNPACKED_DIR/voice" /usr/local/sbin/voice_announcement
+
+        ## VOICE END ##
+        ###############
+
+        if grep '29' "$VERSION_FILE"; then
+            eval finish-update
+        fi
+
+
+
+        # install autossh or die
+        if ! command -v autossh; then
+            sudo apt-get update -y && \
+            sudo apt-get install autossh -y --force-yes || { echo "update.sh irsalabd@gmail.com warning
+    could not install autossh" > /tmp/inobi/message; exit; }
+        fi
+
+        # new captive.sh 
+        sudo mv "$TMP_UNPACKED_DIR/captive.sh" /usr/local/sbin
+
+        if grep '27' "$VERSION_FILE"; then
+            eval finish-update
+        fi
+
+        # ... and captive_v2.sh
+        sudo mv "$TMP_UNPACKED_DIR/captive_v2.sh" /usr/local/sbin
+        sudo chmod +x /usr/local/sbin/captive*
+
+        # new ntp.conf
+        sudo mv "$TMP_UNPACKED_DIR/ntp.conf" /etc/
+
+
+        if grep -E '(25|26)' "$VERSION_FILE"; then
+            eval finish-update
+        fi
+
+        # copy new server.py (with box version in messages)
+        sudo cp "$TMP_UNPACKED_DIR/server.py" /usr/local/sbin
+
+        if grep '24' "$VERSION_FILE"; then
+            eval finish-update
+        fi
+
+        # added new config to ignore host key checking
+        sudo chmod 700 "$TMP_UNPACKED_DIR/.ssh"
+        sudo chmod 600 "$TMP_UNPACKED_DIR/.ssh/id_rsa"
+        sudo rm -rf /root/.ssh/ /home/orangepi/.ssh/
+        sudo cp -r "$TMP_UNPACKED_DIR/.ssh" /root/
+        sudo -u orangepi cp -r "$TMP_UNPACKED_DIR/.ssh" /home/orangepi/
+
+        if grep -E '(22|23)' "$VERSION_FILE"; then
+            eval finish-update
+        fi
+
+
+        ######################
+        ## INOBI-BOX-SERVER ##
+
+        SETTINGS='/settings.ini'
+
+        if [ -e $SETTINGS ]; then
+            if ! grep -q MAKE_LINKS $SETTINGS; then
+
+                # removing all make_dirs option values
+                sed '/\s*\/tmp\/inobi,0777/d' -i $SETTINGS
+
+                # readding option value
+                sed '/MAKE_DIRS = /a\
+    \/tmp\/inobi,0777\
+    \/tmp\/inobi\/add.d,0777\
+MAKE_LINKS = \
+    \/tmp\/coords,\/tmp\/inobi\/add.d\/coords._.json\
+    \/tmp\/obd.out,\/tmp\/inobi\/add.d\/obd.obd' -i $SETTINGS
+            else
+                echo 'settings.ini already has MAKE_LINKS option'
+            fi
+        else
+            echo 'settings.ini not exists'
+        fi
+
+        ### INOBI-BOX-SERVER END ###
+        ############################
+
+        # update.sh moved into general if clause
+        sudo mv "$TMP_UNPACKED_DIR/update.sh" /usr/local/sbin/
+        sudo chmod +x /usr/local/sbin/update.sh
+        
+        id=$(ifconfig eth0 | grep -oP '(([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2}))')
+
+
+        if ! command -v git; then
+            # install git
+            if ! ( sudo apt-get install git git-core -y --force-yes \
+                && echo "update.sh irsalabd@gmail.com info
+$id installed git successfully
+" > /tmp/inobi/message ); then 
+
+                # try cp git binary from archive
+                sudo cp "$TMP_UNPACKED_DIR/git" /usr/local/sbin/ 
+                echo "update.sh irsalabd@gmail.com warning
+git copied: $(git --version)" > /tmp/inobi/message
+            fi
+        fi
+
+        # gitupdate.sh
+        sudo cp -r "$TMP_UNPACKED_DIR/gitupdate.sh" /usr/local/sbin/
+
+        # move service files
+        sudo mv "$TMP_UNPACKED_DIR/service-files/"* /etc/systemd/system/
+        sudo systemctl enable gitupdate-checker.timer
+        sudo systemctl daemon-reload
+
+        # new open 
+        sudo mv "$TMP_UNPACKED_DIR/opengate.sh" /var/www
+        sudo chown www-data:www-data /var/www/opengate.sh
+        sudo chmod 755 /var/www/opengate.sh
+        
+
+        ######################### CHANGING SSID OF BOX WI-FI #############################
+        # TL-WR720N
+        if curl -s 'http://192.168.1.1/userRpm/StatusRpm.htm' -H 'Authorization: Basic ZGFya3JlZDppd2J0bXlo' -H 'Referer: http://192.168.1.1/userRpm/MenuRpm.htm' | grep 'statusPara = new Array(' -A9 | grep 'WR720N'; then
+
+            echo 'TL-WR720N modem detected'
+
+            # OLD_SSID='Free Wi-Fi Inobi'
+            NEW_SSID='Inobi_FREE'
+            AUTH_CRED='ZGFya3JlZDppd2J0bXlo'
+
+            # check if not already renamed
+            if ! curl -s 'http://192.168.1.1/userRpm/WlanNetworkRpm.htm' -H "Authorization: Basic $AUTH_CRED" | grep 'wlanPara = new Array(' -A40 | grep -q "$NEW_SSID"; then
+                
+                # change ssid
+                curl -s "http://192.168.1.1/userRpm/WlanNetworkRpm.htm?ssid1=$NEW_SSID&ssid2=TP-LINK_3EB8_2&ssid3=TP-LINK_3EB8_3&ssid4=TP-LINK_3EB8_4&region=83&channel=0&mode=5&chanWidth=2&ap=1&broadcast=2&brlssid=&brlbssid=&keytype=1&wepindex=1&authtype=1&keytext=&Save=true" \
+                    -H "Authorization: Basic $AUTH_CRED" \
+                    -H 'Referer: http://192.168.1.1/userRpm/WlanNetworkRpm.htm' \
+                    | grep 'wlanPara = new Array(' -A40
+
+                # reboot modem
+                curl -qs 'http://192.168.1.1/userRpm/SysRebootRpm.htm?Reboot=true' \
+                    -H "Authorization: Basic $AUTH_CRED" \
+                    -H 'Referer: http://192.168.1.1/userRpm/SysRebootRpm.htm'
+            else 
+                echo 'wifi is already '"$NEW_SSID"
+            fi
+
+        # TL-WR740N
+        elif curl -sL -D- -o/dev/null 'http://192.168.1.1' | grep 'WR740N'; then
+
+            echo 'TL-WR740N detected'
+
+            NEW_SSID='Inobi_FREE'
+            HOST='http://192.168.1.1'
+            AUTH_CRED='Cookie: Authorization=Basic%20ZGFya3JlZDo2MTkxODA0NTg2YWYzMmQzNjk5MjdlZDI4MWVlNTcxNg%3D%3D'
+
+            # login
+            SESSION_ID=$(curl -s $HOST/userRpm/LoginRpm.htm?Save=Save -H "$AUTH_CRED" | grep -oE '192\.168\.1\.1\/\w+\/' | grep -oE '[a-zA-Z]*')
+
+            echo "logged in: $SESSION_ID"
+
+            if ! curl -s "$HOST/$SESSION_ID/userRpm/WlanNetworkRpm.htm" -H "$AUTH_CRED" -H "Referer: $HOST/$SESSION_ID/userRpm/MenuRpm.htm" | grep "$NEW_SSID" -A2 ; then
+                
+                echo 'changing wifi ssid'
+                curl -s "$HOST/$SESSION_ID/userRpm/WlanNetworkRpm.htm?ssid1=$(printf '%s' "$NEW_SSID" | sed 's/ /%20/g')&ssid2=TP-LINK_9A58_2&ssid3=TP-LINK_9A58_3&ssid4=TP-LINK_9A58_4&region=83&band=0&mode=5&chanWidth=2&channel=15&ap=1&broadcast=2&brlssid=&brlbssid=&addrType=1&keytype=1&wepindex=1&authtype=1&keytext=&Save=true" \
+                    -H "$AUTH_CRED" \
+                    -H "Referer: $HOST/$SESSION_ID/userRpm/WlanNetworkRpm.htm" \
+                    -o /dev/null 
+
+                # this router models renames ssid of wifi immideately, no need to reboot
+                # echo rebooting
+                # curl -s "$HOST/$SESSION_ID/userRpm/SysRebootRpm.htm?Reboot=true" \
+                #     -H "$AUTH_CRED" \
+                #     -H "Referer: $HOST/$SESSION_ID/userRpm/SysRebootRpm.htm" \
+                #     -o /dev/null
+
+            else
+                echo "wifi is already $NEW_SSID"
+            fi
+
+            # logout
+            curl -s "$HOST/$SESSION_ID/userRpm/LogoutRpm.htm" -o/dev/null -H "$AUTH_CRED" -H "Referer: $HOST/userRpm/MenuRpm.htm"
+            echo logged out
+
+
+        # openWrt router
+        elif [ "$(curl http://192.168.1.1/cgi-bin/luci -so/dev/null -w '%{http_code}')" == "403" ] ; then
+            
+            echo 'OpenWRT modem detected'
+
+            # check if sshpass is installed
+            if ! command -v sshpass; then
+                sudo apt-get install sshpass
+            fi
+
+            NEW_SSID='Inobi_FREE'
+            AUTH_CRED='iwbtmyh'
+
+            sudo ssh-keygen -f "/home/orangepi/.ssh/known_hosts" -R 192.168.1.1
+            sudo ssh-keygen -f "/root/.ssh/known_hosts" -R 192.168.1.1
+
+            sudo rm -f /root/.ssh/known_hosts.old 
+            sudo rm -f /home/orangepi/.ssh/known_hosts.old 
+
+            sudo chown -R orangepi:orangepi /home/orangepi/.ssh
+
+            sshpass -p $AUTH_CRED ssh -o StrictHostKeyChecking=no root@192.168.1.1 /bin/ash << EOF
+if ! uci show wireless | grep -q '${NEW_SSID}'; then
+    uci set wireless.@wifi-iface[0].ssid="${NEW_SSID}"
+    uci commit wireless
+    wifi
+    echo applying new ssid
+else
+    echo wifi is already '${NEW_SSID}'
+fi
+EOF
+
+        else 
+            echo "update.sh irsalabd@gmail.com warning
+unknown router modem on $id" > /tmp/inobi/message
+        fi
+
+        ######################### CHANGING SSID OF BOX WI-FI END #########################
+
+
+        eval finish-update
+    fi
+
+elif ls /home | grep alarm; then
+
+    # arch stuff
+
+    # upload your data to some url
+    BUNDLE_URL='http://198.50.214.20:4325/advertisement/v1/uploads/external/725a2641-2f7f-4ce5-bc7d-134643b6ba21'
+
+    if wget "$BUNDLE_URL" -O "$TMP_ARCHIVE_PATH"; then
+
+        # remount system for write
+        sudo mount -o remount,rw /
+        # creating bundle directory
+        sudo mkdir -p "$TMP_UNPACKED_DIR"
+        
+        # unpacking stuff to bundle directory
+        sudo tar -xzf "$TMP_ARCHIVE_PATH" -C "$TMP_UNPACKED_DIR"
+
+        #############
+        ### VOICE ###
+
+        # installing new voice-annoucement requirements
+        sudo pip3 install -r "$TMP_UNPACKED_DIR/voice/requirements.txt"
+
+        # voice announcement stuff
+        sudo systemctl stop voice-announcement
+        # aka reset voice-announcement
+        sudo rm -rf /mnt/media/voice_announcement/manage.json
+        # replacing files
+        sudo rm -rf /usr/local/sbin/voice_announcement  
+        sudo mv "$TMP_UNPACKED_DIR/voice" /usr/local/sbin/voice_announcement
+
+        ## VOICE END ##
+        ###############
+
+        if grep '29' "$VERSION_FILE"; then
+            eval finish-update
+        fi
+
+
+        # new captive.sh for alarms in bishkek
+        sudo mv "$TMP_UNPACKED_DIR/captive_megacom.sh" /usr/local/sbin/captive.sh
+        sudo chmod +x /usr/local/sbin/captive.sh
+
+        if grep '27' "$VERSION_FILE"; then
+            eval finish-update
+        fi
+
+        # added restart=always
+        sudo mv "$TMP_UNPACKED_DIR/service-files/statistic.service" /etc/systemd/system/
+        sudo systemctl daemon-reload
+
+        if grep -E '(25|26)' "$VERSION_FILE"; then
+            eval finish-update
+        fi
+
+        # sudo pacman -S autossh --noconfirm
+        # errors to find glibc 2.28
+        
+        # install autossh (manually) or die
+        cd /tmp/ && \
+        gunzip -c "$TMP_UNPACKED_DIR/autossh-1.4e.tgz" | tar xvf - && \
+        cd autossh-1.4e && \
+        ./configure && \
+        make && \
+        sudo make install || { echo "update.sh irsalabd@gmail.com warning
+could not install autossh" > /tmp/inobi/message; exit; }
+
+        # copy new server.py
+        sudo cp "$TMP_UNPACKED_DIR/server.py" /usr/local/sbin
+
+        # added new config to ignore host key checking
+        sudo chmod 700 "$TMP_UNPACKED_DIR/.ssh"
+        sudo chmod 600 "$TMP_UNPACKED_DIR/.ssh/id_rsa"
+        sudo rm -rf /root/.ssh/ /home/alarm/.ssh/
+        sudo cp -r "$TMP_UNPACKED_DIR/.ssh" /root/
+        sudo -u alarm cp -r "$TMP_UNPACKED_DIR/.ssh" /home/alarm/
+
+        if grep '24' "$VERSION_FILE"; then
+            eval finish-update
+        fi
+
+        eval finish-update
+    fi
+
+elif uname -n | grep -i openwrt; then
+
+    # BUNDLE_URL='::URL_GOES_HERE::'
+
+    # if wget "$BUNDLE_URL" -O "$TMP_ARCHIVE_PATH"; then
+
+    #     # creating bundle directory
+    #     sudo mkdir -p "$TMP_UNPACKED_DIR"
+        
+    #     # unpacking stuff to bundle directory
+    #     sudo tar -xzf "$TMP_ARCHIVE_PATH" -C "$TMP_UNPACKED_DIR"
+
+    # fi
+
+    finish-update --no-reboot
+
+fi
